@@ -3,6 +3,7 @@ import axios from "axios"
 import cors from "cors"
 import moment from "moment"
 import run from './aws'
+import { error } from "console"
 const METADATA_URL = 'http://169.254.169.254/latest/meta-data';
 const TOKEN_URL = 'http://169.254.169.254/latest/api/token';
 
@@ -63,12 +64,15 @@ getIpAddresses().then((myIP) => {
 
   app.get("/launch", async (req: Request, res: Response) => {
     for (const ip of agentIPs) {
-      const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
-      if (result.success) {
-        const passwordHash = (await axios.get(`http://${myIP}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
-        res.send({ launched: true, url: encodeURI(`http://${myIP}/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });
-        return;
-      }
+      try {
+
+        const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
+        if (result.success) {
+          const passwordHash = (await axios.get(`http://${myIP}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
+          res.send({ launched: true, url: encodeURI(`http://${myIP}/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });
+          return;
+        }
+      } catch (error) { console.log(error) }
     }
     res.send({ launched: false });
   });
@@ -93,6 +97,15 @@ getIpAddresses().then((myIP) => {
       result[ip] = (await axios.get(`http://${ip}:8001/ids`, { params: { id: req.query.id } })).data;
     };
     res.send(result);
+  });
+  app.get("/status", async (req: Request, res: Response) => {
+    let running = 0;
+    for (const ip of agentIPs) {
+      try {
+        if ((await axios.get(`http://${ip}:8001/status`)).data == "true") running++;
+      } catch (error) { console.log(error) }
+    };
+    res.send({ total: agentIPs.length, running });
   });
 
   app.listen(8001, () => {

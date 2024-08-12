@@ -76,7 +76,7 @@ getIpAddresses().then((myIP) => {
 
   app.get("/logs", async (req: Request, res: Response) => {
     const result = [];
-    for (const ip in agentIPs) {
+    for (const ip of agentIPs) {
       result.push(...(await axios.get(`http://${ip}:8001/logs`, { params: { id: req.query.id } })).data);
     }
     res.send(result);
@@ -84,7 +84,7 @@ getIpAddresses().then((myIP) => {
 
   app.get("/ids", async (req: Request, res: Response) => {
     const result = [];
-    for (const ip in agentIPs) {
+    for (const ip of agentIPs) {
       result.push(...(await axios.get(`http://${ip}:8001/ids`, { params: { id: req.query.id } })).data);
     }
     res.send(result);

@@ -65,9 +65,8 @@ getIpAddresses().then((myIP) => {
       const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
       console.log(result);
       if (result.success) {
-        console.log(123123);
-        const passwordHash = (await axios.get(`http://${ip}:8001/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
-        res.send({ launched: true, url: encodeURI(`http://${ip}:8001/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });
+        const passwordHash = (await axios.get(`http://${ip}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
+        res.send({ launched: true, url: encodeURI(`http://${ip}/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });
         return;
       }
     }

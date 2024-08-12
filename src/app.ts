@@ -63,9 +63,9 @@ getIpAddresses().then((myIP) => {
   app.get("/launch", async (req: Request, res: Response) => {
     for (const ip of agentIPs) {
       const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
-      console.log(result);
       if (result.success) {
         const passwordHash = (await axios.get(`http://${ip}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
+        console.log(passwordHash);
         res.send({ launched: true, url: encodeURI(`http://${ip}/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });
         return;
       }
@@ -74,19 +74,19 @@ getIpAddresses().then((myIP) => {
   });
 
   app.get("/logs", async (req: Request, res: Response) => {
-    const result = [];
-    for (const ip of agentIPs) {
-      result.push(...(await axios.get(`http://${ip}:8001/logs`, { params: { id: req.query.id } })).data);
-    }
-    res.send(result);
+    // const result = [];
+    // for (const ip of agentIPs) {
+    //   result.push(...(await axios.get(`http://${ip}:8001/logs`, { params: { id: req.query.id } })).data);
+    // }
+    // res.send(result);
   });
 
   app.get("/ids", async (req: Request, res: Response) => {
-    const result = [];
-    for (const ip of agentIPs) {
-      result.push(...(await axios.get(`http://${ip}:8001/ids`, { params: { id: req.query.id } })).data);
-    }
-    res.send(result);
+    // const result = [];
+    // for (const ip of agentIPs) {
+    //   result.push(...(await axios.get(`http://${ip}:8001/ids`, { params: { id: req.query.id } })).data);
+    // }
+    // res.send(result);
   })
 
   app.listen(8001, () => {

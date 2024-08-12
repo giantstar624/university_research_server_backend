@@ -59,7 +59,7 @@ getIpAddresses().then((myIP) => {
   //L4I(wYd)lIzqTJAEmObrL2x!GP3eUvo9
   const app = express();
   //ip:available
-  const agentIPs = ["34.224.109.221", "3.88.114.18", "54.88.26.136"]
+  const agentIPs = ["34.224.109.221", "34.228.162.90", "54.197.159.1"]
   app.use(cors());
 
   app.get("/launch", async (req: Request, res: Response) => {

@@ -74,8 +74,9 @@ getIpAddresses().then((myIP) => {
 
   app.get("/logs", async (req: Request, res: Response) => {
     if (typeof (req.query.id) != 'string') return;
-    console.log(req.query.id);
     const index = req.query.id.indexOf('_');
+    console.log(req.query.id.substring(index + 1));
+
     res.send((await axios.get(`http: //${req.query.id.substring(0, index)}:8001/logs`, { params: { id: req.query.id.substring(index + 1) } })).data);
   });
 

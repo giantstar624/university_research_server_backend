@@ -62,6 +62,7 @@ getIpAddresses().then((myIP) => {
 
   app.get("/launch", async (req: Request, res: Response) => {
     for (const ip in agentIPs) {
+      console.log(ip);
       const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
       console.log(result);
       if (result.success) {

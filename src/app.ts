@@ -92,14 +92,11 @@ getIpAddresses().then((myIP) => {
     res.send("ok");
   })
   app.get("/ids", async (req: Request, res: Response) => {
-    const agentIPs = ["34.224.109.221", "34.224.109.222"]; // Example IPs
-    const id = req.query.id as string;
-
     try {
       // Create an array of promises for the parallel HTTP requests
       const requests = agentIPs.map(async (ip) => {
         try {
-          const response = await axios.get(`http://${ip}:8001/ids`, { params: { id } });
+          const response = await axios.get(`http://${ip}:8001/ids`);
           return { ip, data: response.data };
         } catch (error) {
           console.error(`Error fetching data from ${ip}:`, error);

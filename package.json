@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "tsnd --env-file=.env src/app.ts"
+    "dev": "tsnd src/app.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

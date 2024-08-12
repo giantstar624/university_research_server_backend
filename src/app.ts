@@ -49,6 +49,7 @@ async function getIpAddresses() {
   }
 }
 getIpAddresses().then((myIP) => {
+  console.log(`my address is ${myIP}`)
   const rdpInfo = {
     "user": "administrator",
     "password": "mO29pXzn%B2Kf(hwoBM$vOXbpDQ3hoWw"

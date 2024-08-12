@@ -32,7 +32,7 @@ const userDataBase64 = Buffer.from(userData).toString('base64');
 // Launch the instance
 const run = async (cnt: number) => {
     const params = {
-        ImageId: 'ami-0b29d30350e9b96ec', // Replace with your AMI ID
+        ImageId: 'ami-083f7ce31334d6b22', // Replace with your AMI ID
         InstanceType: _InstanceType.t2_large, // Corrected to string format
         MinCount: cnt,
         MaxCount: cnt,

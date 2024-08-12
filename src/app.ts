@@ -92,11 +92,34 @@ getIpAddresses().then((myIP) => {
     res.send("ok");
   })
   app.get("/ids", async (req: Request, res: Response) => {
-    const result: any = {};
-    for (const ip of agentIPs) {
-      result[ip] = (await axios.get(`http://${ip}:8001/ids`, { params: { id: req.query.id } })).data;
-    };
-    res.send(result);
+    const agentIPs = ["34.224.109.221", "34.224.109.222"]; // Example IPs
+    const id = req.query.id as string;
+
+    try {
+      // Create an array of promises for the parallel HTTP requests
+      const requests = agentIPs.map(async (ip) => {
+        try {
+          const response = await axios.get(`http://${ip}:8001/ids`, { params: { id } });
+          return { ip, data: response.data };
+        } catch (error) {
+          console.error(`Error fetching data from ${ip}:`, error);
+          return { ip, data: [] };
+        }
+      });
+
+      // Wait for all requests to complete
+      const results = await Promise.all(requests);
+
+      // Process results
+      const result = results.reduce((acc, { ip, data }) => {
+        acc[ip] = data;
+        return acc;
+      }, {} as Record<string, any>);
+      res.json(result);
+    } catch (error) {
+      console.error('Error in processing requests:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
   });
   app.get("/status", async (req: Request, res: Response) => {
     let running = 0;

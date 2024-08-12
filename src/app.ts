@@ -59,13 +59,13 @@ getIpAddresses().then((myIP) => {
   //L4I(wYd)lIzqTJAEmObrL2x!GP3eUvo9
   const app = express();
   //ip:available
-  const agentIPs = ["34.224.109.221", "107.21.138.173"]
+  const agentIPs = ["34.224.109.221", "3.88.114.18", "54.88.26.136"]
   app.use(cors());
 
   app.get("/launch", async (req: Request, res: Response) => {
     for (const ip of agentIPs) {
       try {
-        const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') }, timeout: 5000 })).data;
+        const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
         if (result.success) {
           const passwordHash = (await axios.get(`http://${myIP}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
           res.send({ launched: true, url: encodeURI(`http://${myIP}/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });

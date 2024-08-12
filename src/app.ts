@@ -102,7 +102,7 @@ getIpAddresses().then((myIP) => {
     let running = 0;
     for (const ip of agentIPs) {
       try {
-        if ((await axios.get(`http://${ip}:8001/status`)).data == "true") running++;
+        if ((await axios.get(`http://${ip}:8001/status`)).data == true) running++;
       } catch (error) { console.log(error) }
     };
     res.send({ total: agentIPs.length, running });

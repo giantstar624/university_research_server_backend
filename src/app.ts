@@ -101,6 +101,7 @@ getIpAddresses().then((myIP) => {
   app.get("/status", async (req: Request, res: Response) => {
     let running = 0;
     for (const ip of agentIPs) {
+      console.log((await axios.get(`http://${ip}:8001/status`)).data)
       try {
         if ((await axios.get(`http://${ip}:8001/status`)).data.status == true) running++;
       } catch (error) { console.log(error) }

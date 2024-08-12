@@ -120,13 +120,26 @@ getIpAddresses().then((myIP) => {
   });
   app.get("/status", async (req: Request, res: Response) => {
     let running = 0;
-    for (const ip of agentIPs) {
-      console.log((await axios.get(`http://${ip}:8001/status`)).data)
+    const requests = agentIPs.map(async (ip) => {
       try {
-        if ((await axios.get(`http://${ip}:8001/status`)).data.status == true) running++;
-      } catch (error) { console.log(error) }
-    };
-    res.send({ total: agentIPs.length, running });
+        const response = await axios.get(`http://${ip}:8001/status`);
+        return { status: response.data.status };
+      } catch (error) {
+        console.error(`Error fetching data from ${ip}:`, error);
+        return { status: false };
+      }
+    });
+    // Wait for all requests to complete
+    const results = await Promise.all(requests);
+    results.forEach(({ status }) => status && running++);
+
+    res.json({ total: agentIPs.length, running });
+    // for (const ip of agentIPs) {
+    //   try {
+    //     if ((await axios.get(`http://${ip}:8001/status`)).data.status == true) running++;
+    //   } catch (error) { console.log(error) }
+    // };
+    // res.send({ total: agentIPs.length, running });
   });
 
   app.listen(8001, () => {

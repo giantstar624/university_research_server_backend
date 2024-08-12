@@ -65,7 +65,6 @@ getIpAddresses().then((myIP) => {
   app.get("/launch", async (req: Request, res: Response) => {
     for (const ip of agentIPs) {
       try {
-
         const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
         if (result.success) {
           const passwordHash = (await axios.get(`http://${myIP}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
@@ -89,7 +88,7 @@ getIpAddresses().then((myIP) => {
     const cnt = req.query.cnt;
     if (typeof (cnt) == 'string')
       run(parseInt(cnt));
-    res.send("ok");
+    res.send({ success: true });
   })
   app.get("/ids", async (req: Request, res: Response) => {
     try {
@@ -132,14 +131,7 @@ getIpAddresses().then((myIP) => {
     // Wait for all requests to complete
     const results = await Promise.all(requests);
     results.forEach(({ status }) => status && running++);
-
     res.json({ total: agentIPs.length, running });
-    // for (const ip of agentIPs) {
-    //   try {
-    //     if ((await axios.get(`http://${ip}:8001/status`)).data.status == true) running++;
-    //   } catch (error) { console.log(error) }
-    // };
-    // res.send({ total: agentIPs.length, running });
   });
 
   app.listen(8001, () => {

@@ -72,18 +72,18 @@ async function getAgentStatus() {
 getIpAddresses().then(async (myIP) => {
   console.log(`my address is ${myIP}`)
   const rdpInfo = {
-    "user": "administrator",
-    "password": "mO29pXzn%B2Kf(hwoBM$vOXbpDQ3hoWw"
+    "user": process.env.RDP_USER,
+    "password": process.env.RDP_PASSWORD
   }
   //L4I(wYd)lIzqTJAEmObrL2x!GP3eUvo9
   const app = express();
   let agentStatus = new Map<string, string>();
   agentStatus = await getAgentStatus();
-  agentStatus.set("34.224.109.221", "disconnected");
+  // agentStatus.set("34.224.109.221", "disconnected");
   //ip:available
   setInterval(async () => {
     agentStatus = await getAgentStatus();
-    agentStatus.set("34.224.109.221", "disconnected");
+    // agentStatus.set("34.224.109.221", "disconnected");
   }, 10000)
   app.use(cors());
 

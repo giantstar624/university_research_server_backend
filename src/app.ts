@@ -124,7 +124,7 @@ getIpAddresses().then(async (myIP) => {
   app.get("/ids", async (req: Request, res: Response) => {
     try {
       // Create an array of promises for the parallel HTTP requests
-      const requests = Object.keys(agentStatus).map(async (ip) => {
+      const requests = Array.from(agentStatus.keys()).map(async (ip) => {
         try {
           const response = await axios.get(`http://${ip}:8001/ids`, { timeout: 5000 });
           return { ip, data: response.data };
@@ -149,7 +149,7 @@ getIpAddresses().then(async (myIP) => {
   });
   app.get("/status", async (req: Request, res: Response) => {
     let countInResearch = 0, countNoReponse = 0;
-    const requests = Object.keys(agentStatus).map(async (ip) => {
+    const requests = Array.from(agentStatus.keys()).map(async (ip) => {
       try {
         const response = await axios.get(`http://${ip}:8001/status`, { timeout: 5000 });
         return { status: response.data };

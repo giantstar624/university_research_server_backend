@@ -88,7 +88,7 @@ getIpAddresses().then(async (myIP) => {
   app.use(cors());
 
   app.get("/launch", async (req: Request, res: Response) => {
-    for (const ip in agentStatus.keys())
+    for (const ip of agentStatus.keys())
       if (agentStatus.get(ip) == "disconnected") {
         agentStatus.set(ip, "connected");
         try {

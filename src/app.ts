@@ -82,13 +82,14 @@ getIpAddresses().then(async (myIP) => {
   agentStatus = await getAgentStatus();
   //ip:available
   setInterval(async () => {
+    agentStatus.set("34.224.109.221", "disconnected");
     agentStatus = await getAgentStatus();
   }, 10000)
   app.use(cors());
 
   app.get("/launch", async (req: Request, res: Response) => {
-    for (const ip in agentStatus)
-      if (agentStatus.get(ip) == "disconnected") {
+    for (const [ip, status] of agentStatus)
+      if (status == "disconnected") {
         agentStatus.set(ip, "connected");
         try {
           const result = (await axios.get(`http://${ip}:8001/status`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;

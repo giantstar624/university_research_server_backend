@@ -90,7 +90,6 @@ async function getInstanceIPsByTag(tagKey: string, tagValue: string): Promise<st
             }
         });
 
-        console.log('IP Addresses:', ipAddresses);
         return ipAddresses;
     } catch (error) {
         console.error('Error fetching instances:', error);

@@ -55,7 +55,7 @@ async function getAgentStatus() {
   const requests = ipAddresses.map(async (ip) => {
     try {
       const response = await axios.get(`http://${ip}:8001/status`, { timeout: 5000 });
-      return { ip: ip, status: response.data.status };
+      return { ip: ip, status: response.data };
     } catch (error) {
       console.error(`Error fetching data from ${ip}:`, error);
       return { status: "noresponse" };

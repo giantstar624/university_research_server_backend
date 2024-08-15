@@ -114,6 +114,10 @@ getIpAddresses().then(async (myIP) => {
 
     res.send((await axios.get(`http://${req.query.id.substring(0, index)}:8001/logs`, { params: { id: req.query.id.substring(index + 1) } })).data);
   });
+  app.get("/logoff", (req: Request, res: Response) => {
+    agentStatus.set(req.query.ip as string, "disconnected")
+    res.send("ok")
+  })
 
   app.get("/create_instance", async (req: Request, res: Response) => {
     const cnt = req.query.cnt;

@@ -1,4 +1,4 @@
-import { _InstanceType, EC2Client, ResourceType, RunInstancesCommand } from "@aws-sdk/client-ec2";
+import { _InstanceType, EC2Client, ResourceType, RunInstancesCommand, DescribeInstancesCommand } from "@aws-sdk/client-ec2";
 import { fromEnv } from '@aws-sdk/credential-provider-env'
 import * as dotenv from 'dotenv';
 
@@ -60,4 +60,41 @@ const run = async (cnt: number) => {
         console.error('Error launching instance:', error);
     }
 };
-export default run;
+async function getInstanceIPsByTag(tagKey: string, tagValue: string): Promise<string[]> {
+    const ipAddresses: string[] = [];
+
+    try {
+        // DescribeInstancesCommand to fetch instances
+        const describeInstancesCommand = new DescribeInstancesCommand({
+            Filters: [
+                {
+                    Name: 'instance-state-name',
+                    Values: ['running'] // Filter for running instances
+                },
+                {
+                    Name: 'tag:' + tagKey,
+                    Values: [tagValue] // Filter by tag key and value
+                }
+            ]
+        });
+
+        // Send command
+        const response = await ec2Client.send(describeInstancesCommand);
+
+        // Process the response
+        const instances = response.Reservations?.flatMap(reservation => reservation.Instances) || [];
+
+        instances.forEach(instance => {
+            if (instance!.PublicIpAddress) {
+                ipAddresses.push(instance!.PublicIpAddress);
+            }
+        });
+
+        console.log('IP Addresses:', ipAddresses);
+        return ipAddresses;
+    } catch (error) {
+        console.error('Error fetching instances:', error);
+        throw error;
+    }
+}
+export default { run, getInstanceIPsByTag };

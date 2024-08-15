@@ -2,7 +2,7 @@ import express, { Request, Response } from "express"
 import axios from "axios"
 import cors from "cors"
 import moment from "moment"
-import run from './aws'
+import awsUtil from './aws'
 import { error } from "console"
 const METADATA_URL = 'http://169.254.169.254/latest/meta-data';
 const TOKEN_URL = 'http://169.254.169.254/latest/api/token';
@@ -59,20 +59,32 @@ getIpAddresses().then((myIP) => {
   //L4I(wYd)lIzqTJAEmObrL2x!GP3eUvo9
   const app = express();
   //ip:available
-  const agentIPs = ["34.224.109.221", "34.228.162.90", "54.197.159.1"]
+  setInterval(async () => {
+    const ipAddresses = await awsUtil.getInstanceIPsByTag("Name", "MyInstance")
+    console.log(ipAddresses);
+  }, 10000)
+  const agentIPs: { [key: string]: boolean } = { "34.224.109.221": false, "34.228.162.90": false, "54.197.159.1": false }
+  setInterval(() => {
+
+  }, 60000)
   app.use(cors());
 
   app.get("/launch", async (req: Request, res: Response) => {
-    for (const ip of agentIPs) {
-      try {
-        const result = (await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
-        if (result.success) {
-          const passwordHash = (await axios.get(`http://${myIP}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
-          res.send({ launched: true, url: encodeURI(`http://${myIP}/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });
-          return;
+    for (const ip in agentIPs)
+      if (agentIPs[ip] == false) {
+        agentIPs[ip] = true;
+        try {
+          const result = (await axios.get(`http://${ip}:8001/status`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
+          if (result.status == "disconnected") {
+            const passwordHash = (await axios.get(`http://${myIP}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
+            res.send({ launched: true, url: encodeURI(`http://${myIP}/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });
+            return;
+          }
+        } catch (error) {
+          console.log(error);
+          agentIPs[ip] = false;
         }
-      } catch (error) { console.log(error) }
-    }
+      }
     res.send({ launched: false });
   });
 
@@ -87,13 +99,13 @@ getIpAddresses().then((myIP) => {
   app.get("/create_instance", async (req: Request, res: Response) => {
     const cnt = req.query.cnt;
     if (typeof (cnt) == 'string')
-      run(parseInt(cnt));
+      awsUtil.run(parseInt(cnt));
     res.send({ success: true });
   })
   app.get("/ids", async (req: Request, res: Response) => {
     try {
       // Create an array of promises for the parallel HTTP requests
-      const requests = agentIPs.map(async (ip) => {
+      const requests = Object.keys(agentIPs).map(async (ip) => {
         try {
           const response = await axios.get(`http://${ip}:8001/ids`, { timeout: 5000 });
           return { ip, data: response.data };
@@ -119,7 +131,7 @@ getIpAddresses().then((myIP) => {
   });
   app.get("/status", async (req: Request, res: Response) => {
     let running = 0;
-    const requests = agentIPs.map(async (ip) => {
+    const requests = Object.keys(agentIPs).map(async (ip) => {
       try {
         const response = await axios.get(`http://${ip}:8001/status`, { timeout: 5000 });
         return { status: response.data.status };

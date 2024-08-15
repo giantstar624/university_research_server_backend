@@ -88,8 +88,8 @@ getIpAddresses().then(async (myIP) => {
   app.use(cors());
 
   app.get("/launch", async (req: Request, res: Response) => {
-    for (const [ip, status] of agentStatus)
-      if (status == "disconnected") {
+    for (const ip in agentStatus.keys())
+      if (agentStatus.get(ip) == "disconnected") {
         agentStatus.set(ip, "connected");
         try {
           const result = (await axios.get(`http://${ip}:8001/status`)).data;

@@ -50,7 +50,26 @@ async function getIpAddresses() {
     return "";
   }
 }
-getIpAddresses().then((myIP) => {
+async function getAgentStatus() {
+  const ipAddresses = await awsUtil.getInstanceIPsByTag("Name", "MyInstance")
+  const requests = ipAddresses.map(async (ip) => {
+    try {
+      const response = await axios.get(`http://${ip}:8001/status`, { timeout: 5000 });
+      return { ip: ip, status: response.data.status };
+    } catch (error) {
+      console.error(`Error fetching data from ${ip}:`, error);
+      return { status: "noresponse" };
+    }
+  });
+  // Wait for all requests to complete
+  const results = await Promise.all(requests);
+  const newAgentStatus = new Map<string, string>();
+  results.forEach(({ ip, status }) => {
+    newAgentStatus.set(ip!, status);
+  });
+  return newAgentStatus;
+}
+getIpAddresses().then(async (myIP) => {
   console.log(`my address is ${myIP}`)
   const rdpInfo = {
     "user": "administrator",
@@ -58,21 +77,18 @@ getIpAddresses().then((myIP) => {
   }
   //L4I(wYd)lIzqTJAEmObrL2x!GP3eUvo9
   const app = express();
+  let agentStatus = new Map<string, string>();
+  agentStatus = await getAgentStatus();
   //ip:available
   setInterval(async () => {
-    const ipAddresses = await awsUtil.getInstanceIPsByTag("Name", "MyInstance")
-    console.log(ipAddresses);
+    agentStatus = await getAgentStatus();
   }, 10000)
-  const agentIPs: { [key: string]: boolean } = { "34.224.109.221": false, "34.228.162.90": false, "54.197.159.1": false }
-  setInterval(() => {
-
-  }, 60000)
   app.use(cors());
 
   app.get("/launch", async (req: Request, res: Response) => {
-    for (const ip in agentIPs)
-      if (agentIPs[ip] == false) {
-        agentIPs[ip] = true;
+    for (const ip in agentStatus)
+      if (agentStatus.get(ip) == "disconnected") {
+        agentStatus.set(ip, "connected");
         try {
           const result = (await axios.get(`http://${ip}:8001/status`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } })).data;
           if (result.status == "disconnected") {
@@ -82,7 +98,7 @@ getIpAddresses().then((myIP) => {
           }
         } catch (error) {
           console.log(error);
-          agentIPs[ip] = false;
+          agentStatus.set(ip, "noresponse");
         }
       }
     res.send({ launched: false });
@@ -105,7 +121,7 @@ getIpAddresses().then((myIP) => {
   app.get("/ids", async (req: Request, res: Response) => {
     try {
       // Create an array of promises for the parallel HTTP requests
-      const requests = Object.keys(agentIPs).map(async (ip) => {
+      const requests = Object.keys(agentStatus).map(async (ip) => {
         try {
           const response = await axios.get(`http://${ip}:8001/ids`, { timeout: 5000 });
           return { ip, data: response.data };
@@ -117,7 +133,6 @@ getIpAddresses().then((myIP) => {
 
       // Wait for all requests to complete
       const results = await Promise.all(requests);
-
       // Process results
       const result = results.reduce((acc, { ip, data }) => {
         acc[ip] = data;
@@ -130,8 +145,8 @@ getIpAddresses().then((myIP) => {
     }
   });
   app.get("/status", async (req: Request, res: Response) => {
-    let running = 0;
-    const requests = Object.keys(agentIPs).map(async (ip) => {
+    let countInResearch = 0, countNoReponse = 0;
+    const requests = Object.keys(agentStatus).map(async (ip) => {
       try {
         const response = await axios.get(`http://${ip}:8001/status`, { timeout: 5000 });
         return { status: response.data.status };
@@ -142,8 +157,13 @@ getIpAddresses().then((myIP) => {
     });
     // Wait for all requests to complete
     const results = await Promise.all(requests);
-    results.forEach(({ status }) => status && running++);
-    res.json({ total: agentIPs.length, running });
+    results.forEach(({ status }) => {
+      if (status == "connected")
+        countInResearch++;
+      else if (status == "noresponse")
+        countNoReponse++;
+    });
+    res.json({ total: agentStatus.size, inResearch: countInResearch, noResponse: countNoReponse });
   });
 
   app.listen(8001, () => {

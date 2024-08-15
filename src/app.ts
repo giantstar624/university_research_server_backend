@@ -93,7 +93,7 @@ getIpAddresses().then(async (myIP) => {
         agentStatus.set(ip, "connected");
         try {
           const result = (await axios.get(`http://${ip}:8001/status`)).data;
-          if (result.status == "disconnected") {
+          if (result == "disconnected") {
             await axios.get(`http://${ip}:8001/launch`, { params: { id: moment().format('YYYY-MM-DD-HH-mm-ss') } });
             const passwordHash = (await axios.get(`http://${myIP}/Myrtille/GetHash.aspx`, { params: { password: rdpInfo.password } })).data;
             res.send({ launched: true, url: encodeURI(`http://${myIP}/Myrtille/?__EVENTTARGET=&__EVENTARGUMENT=&server=${ip}&user=${rdpInfo.user}&passwordHash=${passwordHash}&connect=Connect`) });

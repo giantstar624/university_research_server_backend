@@ -78,6 +78,7 @@ getIpAddresses().then(async (myIP) => {
   //L4I(wYd)lIzqTJAEmObrL2x!GP3eUvo9
   const app = express();
   let agentStatus = new Map<string, string>();
+  agentStatus.set("34.224.109.221", "disconnected");
   agentStatus = await getAgentStatus();
   //ip:available
   setInterval(async () => {

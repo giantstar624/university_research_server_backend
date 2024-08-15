@@ -152,10 +152,10 @@ getIpAddresses().then(async (myIP) => {
     const requests = Object.keys(agentStatus).map(async (ip) => {
       try {
         const response = await axios.get(`http://${ip}:8001/status`, { timeout: 5000 });
-        return { status: response.data.status };
+        return { status: response.data };
       } catch (error) {
         console.error(`Error fetching data from ${ip}:`, error);
-        return { status: false };
+        return { status: "noresponse" };
       }
     });
     // Wait for all requests to complete

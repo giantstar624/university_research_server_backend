@@ -32,7 +32,7 @@ const userDataBase64 = Buffer.from(userData).toString('base64');
 // Launch the instance
 const run = async (cnt: number) => {
     const params = {
-        ImageId: 'ami-0f7546b3775c7b8fc', // Replace with your AMI ID
+        ImageId: 'ami-03713657ef3b09fa8', // Replace with your AMI ID
         InstanceType: _InstanceType.t2_large, // Corrected to string format
         MinCount: cnt,
         MaxCount: cnt,
@@ -62,14 +62,14 @@ const run = async (cnt: number) => {
 };
 async function getInstanceIPsByTag(tagKey: string, tagValue: string): Promise<string[]> {
     const ipAddresses: string[] = [];
-
+    console.log('--------------------------------------------------------');
     try {
         // DescribeInstancesCommand to fetch instances
         const describeInstancesCommand = new DescribeInstancesCommand({
             Filters: [
                 {
                     Name: 'instance-state-name',
-                    Values: ['running'] // Filter for running instances
+                    Values: ['running', 'pending'] // Filter for running instances
                 },
                 {
                     Name: 'tag:' + tagKey,
@@ -85,7 +85,9 @@ async function getInstanceIPsByTag(tagKey: string, tagValue: string): Promise<st
         const instances = response.Reservations?.flatMap(reservation => reservation.Instances) || [];
 
         instances.forEach(instance => {
+            console.log(instance?.InstanceId);
             if (instance!.PublicIpAddress) {
+                console.log(instance?.PublicIpAddress);
                 ipAddresses.push(instance!.PublicIpAddress);
             }
         });

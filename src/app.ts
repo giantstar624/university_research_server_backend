@@ -55,20 +55,23 @@ async function getAgentStatus() {
   const requests = ipAddresses.map(async (ip) => {
     try {
       const response = await axios.get(`http://${ip}:8001/status`, { timeout: 5000 });
-      return { ip: ip, status: response.data };
+      return { ip, status: response.data };
     } catch (error) {
-      console.error(`Error fetching data from ${ip}:`, error);
-      return { status: "noresponse" };
+      // console.error(`Error fetching data from ${ip}:`, error);
+      return { ip, status: "noresponse" };
     }
   });
   // Wait for all requests to complete
-  const results = await Promise.all(requests);
+  const results = await Promise.allSettled(requests);
   const newAgentStatus = new Map<string, string>();
-  results.forEach(({ ip, status }) => {
-    newAgentStatus.set(ip!, status);
+  results.forEach((result: any) => {
+    const { ip, status } = result.value;
+    newAgentStatus.set(ip, status);
   });
   return newAgentStatus;
 }
+
+const endList: any = [];
 getIpAddresses().then(async (myIP) => {
   console.log(`my address is ${myIP}`)
   const rdpInfo = {
@@ -107,6 +110,16 @@ getIpAddresses().then(async (myIP) => {
     res.send({ launched: false });
   });
 
+  app.get("/end", async (req: Request, res: Response) => {
+    const { duration, startTime, endTime } = req.query;
+    console.log({ duration, startTime, endTime });
+    endList.push({ duration: duration as string, startTime: startTime as string, endTime: endTime as string });
+    res.send("Awesome");
+  });
+  app.get("/endlist", async (req: Request, res: Response) => {
+    res.send(endList);
+  })
+
   app.get("/logs", async (req: Request, res: Response) => {
     if (typeof (req.query.id) != 'string') return;
     const index = req.query.id.indexOf('_');
@@ -139,9 +152,10 @@ getIpAddresses().then(async (myIP) => {
       });
 
       // Wait for all requests to complete
-      const results = await Promise.all(requests);
+      const results = await Promise.allSettled(requests);
       // Process results
-      const result = results.reduce((acc, { ip, data }) => {
+      const result = results.reduce((acc, result: any) => {
+        const { ip, data } = result.value
         acc[ip] = data;
         return acc;
       }, {} as Record<string, any>);
@@ -163,8 +177,9 @@ getIpAddresses().then(async (myIP) => {
       }
     });
     // Wait for all requests to complete
-    const results = await Promise.all(requests);
-    results.forEach(({ status }) => {
+    const results = await Promise.allSettled(requests);
+    results.forEach((result: any) => {
+      const { status } = result.value
       if (status == "connected")
         countInResearch++;
       else if (status == "noresponse")
